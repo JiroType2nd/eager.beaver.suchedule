@@ -1,0 +1,365 @@
+// Basketball team: 交流戦スケジューリング & 出欠 & Google Calendar sync
+// ローカル開発: SQLite。本番は Cloud SQL (PostgreSQL) に DATABASE_URL を切り替えて利用可能。
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ----- 3.1 コア -----
+model Team {
+  id        String   @id @default(uuid())
+  name      String
+  publicId  String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users            User[]
+  slots            Slot[]
+  activitySchedules ActivitySchedule[]
+  proposals Proposal[]
+  events    Event[]
+  matchRecords MatchRecord[]
+  guestRecruitments GuestRecruitment[]
+  attendanceLinks AttendanceLink[]
+}
+
+model User {
+  id          String   @id @default(uuid())
+  teamId      String
+  displayName String
+  role        String   @default("MEMBER")  // OWNER | STAFF(大会担当) | MEMBER
+  memberType  String   @default("PLAYER")  // PLAYER | MANAGER
+  // メンバー表用：個人情報（管理者のみ表示）
+  fullName    String?  // フルネーム（未設定時は displayName を使用）
+  phone       String?  // 電話番号
+  email       String?  // メールアドレス（Google登録時アドレスで自動反映）
+  postalCode  String?  // 郵便番号
+  address     String?  // 住所
+  // メンバー表用：公開情報（メンバーにも表示）
+  height      Int?     // 身長（cm）
+  position    String?  // ポジション（PG, SG, SF, PF, C など）
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  team              Team             @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  googleAuth        UserGoogleAuth?
+  uniforms          UserUniform[]
+  activitySchedulesCreated ActivitySchedule[] @relation("ActivityScheduleCreatedBy")
+  activityAttendances      ActivityAttendance[]
+  slotsCreated     Slot[]           @relation("SlotCreatedBy")
+  availabilities   Availability[]
+  eventsCreated    Event[]          @relation("EventCreatedBy")
+  eventsUpdated    Event[]          @relation("EventUpdatedBy")
+  eventSyncs       UserEventSync[]
+  activitySyncs    UserActivitySync[]
+  matchRecordsCreated MatchRecord[]  @relation("MatchRecordCreatedBy")
+  guestRecruitmentsCreated GuestRecruitment[] @relation("GuestRecruitmentCreatedBy")
+  guestRecruitmentApplications GuestRecruitmentApplication[]
+}
+
+// メンバー表：ユニフォーム番号（1人で複数持てる: ホーム/アウェイ等）
+model UserUniform {
+  id     String  @id @default(uuid())
+  userId String
+  number Int     // ユニフォーム番号
+  type   String? // 種別（例: HOME, AWAY。空なら汎用）
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ----- 3.2 Google連携 -----
+model UserGoogleAuth {
+  userId         String    @id
+  googleSubject  String    @unique
+  refreshToken   String
+  scope         String?
+  calendarId    String?
+  calendarSummary String?
+  tokenUpdatedAt DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ----- 3.3 枠 (Slot) -----
+model Slot {
+  id              String     @id @default(uuid())
+  teamId          String
+  startAt         DateTime
+  endAt           DateTime
+  placeName       String
+  placeUrl        String?
+  placeReason     String?
+  notes           String?
+  status          String     @default("OPEN")  // OPEN | BOOKED | CANCELLED
+  createdByUserId String
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  team        Team       @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  createdBy   User       @relation("SlotCreatedBy", fields: [createdByUserId], references: [id])
+  proposals   Proposal[]
+}
+
+// ----- 3.4 提案 (Proposal) -----
+model Proposal {
+  id                  String        @id @default(uuid())
+  teamId              String
+  slotId              String?
+  activityScheduleId  String?       // ホーム: 未定の活動から選択した場合
+  source              String        // SELF(ホーム) | OPPONENT(アウェイ)
+  opponentName        String
+  startAt             DateTime
+  endAt               DateTime
+  placeName           String?       // アウェイ時または活動連携時の実施場所
+  placeUrl            String?       // アウェイ時の実施場所URL
+  status              String        @default("COLLECTING")  // COLLECTING | READY | CONFIRMED | CANCELLED
+  theirOk             Boolean       @default(false)
+  ourOk               Boolean       @default(false)
+  confirmedEventId    String?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  team        Team             @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  slot        Slot?            @relation(fields: [slotId], references: [id], onDelete: SetNull)
+  activity    ActivitySchedule? @relation(fields: [activityScheduleId], references: [id], onDelete: SetNull)
+  availabilities Availability[]
+  event       Event?           @relation("ProposalEvent")
+}
+
+// ----- 3.4b 活動日程 & 出欠 -----
+model ActivitySchedule {
+  id              String   @id @default(uuid())
+  teamId          String
+  title           String?
+  activityType    String?  // 交流戦 | 大会 | 練習 | ピックアップ
+  startAt         DateTime
+  endAt           DateTime
+  placeName       String
+  placeUrl        String?
+  notes           String?
+  createdByUserId String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  team        Team               @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  createdBy   User               @relation("ActivityScheduleCreatedBy", fields: [createdByUserId], references: [id])
+  attendances ActivityAttendance[]
+  userSyncs   UserActivitySync[]
+  proposals   Proposal[]
+  attendanceLinkActivities AttendanceLinkActivity[]
+  attendanceSubmissionItems AttendanceSubmissionItem[]
+}
+
+model ActivityAttendance {
+  id                  String   @id @default(uuid())
+  activityScheduleId  String
+  userId              String
+  answer              String   // YES | MAYBE | NO
+  lateAt              DateTime?
+  leaveAt             DateTime?
+  comment             String?
+  updatedAt           DateTime @updatedAt
+
+  activity ActivitySchedule @relation(fields: [activityScheduleId], references: [id], onDelete: Cascade)
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([activityScheduleId, userId])
+}
+
+// ----- 3.5 出欠 (Availability) -----
+model Availability {
+  id         String   @id @default(uuid())
+  proposalId String
+  userId     String
+  answer     String   // YES | MAYBE | NO
+  lateAt     DateTime?
+  leaveAt    DateTime?
+  comment    String?
+  updatedAt  DateTime @updatedAt
+
+  proposal Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([proposalId, userId])
+}
+
+// ----- 3.6 確定イベント (Event) -----
+model Event {
+  id                String     @id @default(uuid())
+  teamId            String
+  proposalId        String     @unique
+  title             String
+  startAt           DateTime
+  endAt             DateTime
+  placeName         String
+  placeUrl          String?
+  notes             String?
+  status            String      @default("CONFIRMED")  // CONFIRMED | CANCELLED
+  createdByUserId   String
+  updatedByUserId   String
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  team        Team          @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  proposal    Proposal      @relation("ProposalEvent", fields: [proposalId], references: [id], onDelete: Cascade)
+  createdBy   User          @relation("EventCreatedBy", fields: [createdByUserId], references: [id])
+  updatedBy   User          @relation("EventUpdatedBy", fields: [updatedByUserId], references: [id])
+  userSyncs   UserEventSync[]
+  matchRecords MatchRecord[]
+}
+
+// ----- 3.7 Google同期状態 -----
+model UserEventSync {
+  id           String     @id @default(uuid())
+  userId       String
+  eventId      String
+  googleEventId String?
+  status       String     @default("PENDING")  // PENDING | SYNCED | FAILED
+  lastError    String?
+  updatedAt    DateTime   @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId])
+}
+
+model UserActivitySync {
+  id              String   @id @default(uuid())
+  userId          String
+  activityScheduleId String
+  googleEventId   String?
+  status          String   @default("PENDING")  // PENDING | SYNCED | FAILED
+  lastError       String?
+  updatedAt       DateTime @updatedAt
+
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activity ActivitySchedule @relation(fields: [activityScheduleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, activityScheduleId])
+}
+
+// ----- 3.8 試合記録/メディア -----
+model MatchRecord {
+  id              String   @id @default(uuid())
+  teamId          String
+  eventId         String
+  opponentName    String
+  scoreUs         Int?
+  scoreThem       Int?
+  memo            String?
+  createdByUserId String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  team       Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  event      Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  createdBy  User        @relation("MatchRecordCreatedBy", fields: [createdByUserId], references: [id])
+  assets     Asset[]
+  videoLinks VideoLink[]
+}
+
+model Asset {
+  id            String     @id @default(uuid())
+  matchRecordId String
+  type          String   // IMAGE | PDF
+  url           String
+  createdAt     DateTime   @default(now())
+
+  matchRecord MatchRecord @relation(fields: [matchRecordId], references: [id], onDelete: Cascade)
+}
+
+model VideoLink {
+  id            String   @id @default(uuid())
+  matchRecordId String
+  youtubeUrl    String
+  createdAt     DateTime @default(now())
+
+  matchRecord MatchRecord @relation(fields: [matchRecordId], references: [id], onDelete: Cascade)
+}
+
+// ----- ゲスト募集 -----
+model GuestRecruitment {
+  id              String   @id @default(uuid())
+  teamId          String
+  title           String?
+  placeName       String
+  placeUrl        String?
+  level           String   // ダンジョンミックス | エンジョイ | 男性のみ | しっかりめ
+  capacity        Int
+  feeYen          Int      @default(0)  // 参加費（円）
+  startAt         DateTime
+  endAt           DateTime
+  notes           String?
+  createdByUserId String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  team        Team                      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  createdBy   User                      @relation("GuestRecruitmentCreatedBy", fields: [createdByUserId], references: [id])
+  applications GuestRecruitmentApplication[]
+}
+
+model GuestRecruitmentApplication {
+  id                   String   @id @default(uuid())
+  guestRecruitmentId   String
+  userId               String
+  createdAt            DateTime @default(now())
+
+  guestRecruitment GuestRecruitment @relation(fields: [guestRecruitmentId], references: [id], onDelete: Cascade)
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([guestRecruitmentId, userId])
+}
+
+// ----- 出欠リンク（候補日程の出欠収集用、ログイン不要） -----
+model AttendanceLink {
+  id        String   @id @default(uuid())
+  token     String   @unique  // URL用のユニーク文字列（作成ごとに変わる）
+  teamId    String   // ホストチーム（候補日程の所有者）
+  createdAt DateTime @default(now())
+
+  team      Team                  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  activities AttendanceLinkActivity[]
+  submissions AttendanceSubmission[]
+}
+
+
+model AttendanceLinkActivity {
+  id                   String   @id @default(uuid())
+  attendanceLinkId     String
+  activityScheduleId   String
+
+  attendanceLink  AttendanceLink   @relation(fields: [attendanceLinkId], references: [id], onDelete: Cascade)
+  activity        ActivitySchedule @relation(fields: [activityScheduleId], references: [id], onDelete: Cascade)
+
+  @@unique([attendanceLinkId, activityScheduleId])
+}
+
+model AttendanceSubmission {
+  id              String   @id @default(uuid())
+  attendanceLinkId String
+  nickname        String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  attendanceLink AttendanceLink  @relation(fields: [attendanceLinkId], references: [id], onDelete: Cascade)
+  items          AttendanceSubmissionItem[]
+}
+
+model AttendanceSubmissionItem {
+  id                   String   @id @default(uuid())
+  submissionId         String
+  activityScheduleId   String
+  answer               String   // YES | MAYBE | NO（〇 | △ | ×）
+
+  submission AttendanceSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  activity   ActivitySchedule     @relation(fields: [activityScheduleId], references: [id], onDelete: Cascade)
+
+  @@unique([submissionId, activityScheduleId])
+}
