@@ -22,6 +22,8 @@ dist/
 build/
 .next/
 *.log
+
+# Secrets（絶対にコミットしない）
 .env
 .env.local
 .env.*.local
@@ -29,3 +31,6 @@ build/
 # Misc
 *.bak
 *.tmp
+.nexthost.txt
+.gcid.txt
+.gcs.txt

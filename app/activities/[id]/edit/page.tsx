@@ -3,6 +3,7 @@
 import { useSession } from 'next-auth/react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { ActivitiesNav } from '@/components/ActivitiesNav';
 import { useEffect, useState } from 'react';
 import { VENUE_OPTIONS, VENUE_OTHER } from '@/lib/venue-options';
 import { ACTIVITY_TYPES } from '@/lib/zod/schemas';
@@ -148,9 +149,10 @@ export default function EditActivityPage() {
     <main className="min-h-screen pb-24">
       <div className="max-w-lg mx-auto px-4 py-6">
         <Link href={`/activities/${id}`} className="text-gold-400 hover:text-gold-300 text-sm">← 詳細へ</Link>
-        <h1 className="text-xl font-bold text-white mt-4 mb-6">活動日程を編集</h1>
+        <h1 className="text-xl font-bold text-white mt-4 mb-2">活動日程を編集</h1>
+        <ActivitiesNav />
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 mt-6">
           {error && <p className="text-red-300 bg-red-500/20 text-sm rounded px-2 py-1">{error}</p>}
 
           <div>

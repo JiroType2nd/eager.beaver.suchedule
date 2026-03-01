@@ -21,6 +21,12 @@ export function formatActivityTitleWithType(
   return `${base} / ${typeStr}`;
 }
 
+/** 日付のみ表示 例: 4/4(土) */
+export function formatDateShort(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  return format(d, 'M/d(E)', { locale: ja });
+}
+
 /** 日付＋時間範囲を表示（日跨ぎしない想定で終了時刻に日付なし）例: 4/12(日) 13:00～15:00 */
 export function formatDateTimeRange(startAt: string, endAt: string): string {
   const start = new Date(startAt);

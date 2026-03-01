@@ -1,7 +1,7 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
-import Link from 'next/link';
+import { ActivitiesNav } from '@/components/ActivitiesNav';
 import { useEffect, useState } from 'react';
 import { formatDateTimeRange, formatActivityTitleWithType } from '@/lib/date-utils';
 import { apiGet } from '@/lib/api-client';
@@ -13,6 +13,8 @@ type Activity = {
   startAt: string;
   endAt: string;
   placeName: string;
+  syncStatus?: string | null;
+  syncLastError?: string | null;
 };
 
 export default function BulkCalendarPage() {
@@ -23,6 +25,9 @@ export default function BulkCalendarPage() {
   const [importing, setImporting] = useState(false);
   const [error, setError] = useState('');
   const [successCount, setSuccessCount] = useState(0);
+  const [skipCount, setSkipCount] = useState(0);
+  const [failCount, setFailCount] = useState(0);
+  const [failMessages, setFailMessages] = useState<string[]>([]);
 
   useEffect(() => {
     if (status !== 'authenticated') return;
@@ -57,9 +62,22 @@ export default function BulkCalendarPage() {
     setError('');
     setImporting(true);
     setSuccessCount(0);
-    let count = 0;
+    setSkipCount(0);
+    setFailCount(0);
+    setFailMessages([]);
     const ids = Array.from(selectedIds);
+    const activityMap = Object.fromEntries(activities.map((a) => [a.id, a]));
+    let success = 0;
+    let skip = 0;
+    const errors: string[] = [];
     for (const id of ids) {
+      const activity = activityMap[id];
+      // 既にインポート済み（SYNCED）のものは重ねてインポートしない
+      if (activity?.syncStatus === 'SYNCED') {
+        skip++;
+        setSkipCount(skip);
+        continue;
+      }
       try {
         const res = await fetch(`/api/activities/${id}/sync-calendar`, {
           method: 'POST',
@@ -67,11 +85,22 @@ export default function BulkCalendarPage() {
         });
         const data = await res.json();
         if (res.ok && data?.ok) {
-          count++;
-          setSuccessCount(count);
+          success++;
+          setSuccessCount(success);
+          // ローカル状態を更新して次回表示で「インポート済み」になる
+          setActivities((prev) =>
+            prev.map((a) => (a.id === id ? { ...a, syncStatus: 'SYNCED', syncLastError: null } : a))
+          );
+        } else {
+          const msg = data?.error?.message ?? '同期に失敗しました';
+          errors.push(msg);
+          setFailCount(errors.length);
+          setFailMessages([...errors]);
         }
       } catch {
-        // 個別失敗は続行
+        errors.push('ネットワークエラー');
+        setFailCount(errors.length);
+        setFailMessages([...errors]);
       }
     }
     setImporting(false);
@@ -91,11 +120,11 @@ export default function BulkCalendarPage() {
   return (
     <main className="min-h-screen pb-24">
       <div className="max-w-lg mx-auto px-4 py-6">
-        <Link href="/activities" className="text-gold-400 hover:text-gold-300 text-sm">← 一覧へ</Link>
-        <h1 className="text-xl font-bold text-white mt-4 mb-2">Googleカレンダーに一括インポート</h1>
-        <p className="text-sm text-slate-400 mb-6">
+        <h1 className="text-xl font-bold text-white mb-2">Googleカレンダーに一括インポート</h1>
+        <p className="text-sm text-slate-400 mb-4">
           インポートする日程を選択し、一括でGoogleカレンダーに追加します。
         </p>
+        <ActivitiesNav />
 
         {loading ? (
           <p className="text-slate-400">読み込み中…</p>
@@ -104,8 +133,19 @@ export default function BulkCalendarPage() {
         ) : (
           <div className="space-y-4">
             {error && <p className="text-red-300 bg-red-500/20 text-sm rounded px-2 py-1">{error}</p>}
-            {successCount > 0 && (
-              <p className="text-green-400 text-sm">{successCount}件をGoogleカレンダーに追加しました</p>
+            {(successCount > 0 || skipCount > 0 || failCount > 0) && (
+              <div className="space-y-1 text-sm">
+                {successCount > 0 && <p className="text-green-400">{successCount}件をGoogleカレンダーに追加しました</p>}
+                {skipCount > 0 && <p className="text-slate-400">{skipCount}件は既にインポート済みのためスキップしました</p>}
+                {failCount > 0 && (
+                  <p className="text-red-300">
+                    {failCount}件が失敗しました
+                    {failMessages.length > 0 && (
+                      <span className="block mt-1 text-xs">例: {failMessages[0]}</span>
+                    )}
+                  </p>
+                )}
+              </div>
             )}
 
             <div className="flex items-center justify-between mb-3">
@@ -134,6 +174,12 @@ export default function BulkCalendarPage() {
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-white truncate">{formatActivityTitleWithType(a.title, a.placeName, a.activityType)}</p>
                     <p className="text-sm text-slate-400">{formatDateTimeRange(a.startAt, a.endAt)}</p>
+                    {a.syncStatus === 'SYNCED' && (
+                      <span className="inline-block mt-1 text-xs text-green-400">インポート済み</span>
+                    )}
+                    {a.syncStatus === 'FAILED' && a.syncLastError && (
+                      <span className="inline-block mt-1 text-xs text-red-400" title={a.syncLastError}>前回エラー</span>
+                    )}
                   </div>
                 </label>
               ))}

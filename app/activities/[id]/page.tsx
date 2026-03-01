@@ -3,6 +3,7 @@
 import { useSession } from 'next-auth/react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { ActivitiesNav } from '@/components/ActivitiesNav';
 import { useEffect, useState } from 'react';
 import { formatDateTimeRange, formatActivityTitleWithType } from '@/lib/date-utils';
 import { getMemberTypeLabel } from '@/lib/members';
@@ -155,7 +156,7 @@ export default function ActivityDetailPage() {
   return (
     <main className="min-h-screen pb-24">
       <div className="max-w-lg mx-auto px-4 py-6">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center mb-4">
           <Link href="/activities" className="text-gold-400 hover:text-gold-300 text-sm">← 一覧へ</Link>
           <div className="flex gap-3">
             <Link href={`/activities/${id}/edit`} className="text-gold-400 hover:text-gold-300 text-sm">編集</Link>
@@ -169,6 +170,7 @@ export default function ActivityDetailPage() {
             </button>
           </div>
         </div>
+        <ActivitiesNav />
         <h1 className="text-xl font-bold text-white mt-4 mb-2">
           {formatActivityTitleWithType(activity.title, activity.placeName, activity.activityType)}
         </h1>

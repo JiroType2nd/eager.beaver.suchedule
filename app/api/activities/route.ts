@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const viewMatrix = searchParams.get('view') === 'matrix';
   const upcoming = searchParams.get('upcoming') === '1';
+  const withSyncStatus = searchParams.get('withSyncStatus') === '1';
   const from = searchParams.get('from');
   const to = searchParams.get('to');
   const activityType = searchParams.get('activityType');
@@ -56,6 +57,22 @@ export async function GET(req: NextRequest) {
       attendanceMap,
       currentUserId: user.id,
     });
+  }
+
+  // 一括カレンダーインポート用: upcoming または withSyncStatus のとき現在ユーザーの同期状態を付与
+  if (!viewMatrix && (upcoming || withSyncStatus) && activities.length > 0) {
+    const activityIds = activities.map((a) => a.id);
+    const syncs = await prisma.userActivitySync.findMany({
+      where: { userId: user.id, activityScheduleId: { in: activityIds } },
+      select: { activityScheduleId: true, status: true, lastError: true },
+    });
+    const syncMap = Object.fromEntries(syncs.map((s) => [s.activityScheduleId, { status: s.status, lastError: s.lastError }]));
+    const activitiesWithSync = activities.map((a) => ({
+      ...a,
+      syncStatus: syncMap[a.id]?.status ?? null,
+      syncLastError: syncMap[a.id]?.lastError ?? null,
+    }));
+    return apiSuccess(activitiesWithSync);
   }
 
   return apiSuccess(activities);

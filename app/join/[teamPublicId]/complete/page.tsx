@@ -32,17 +32,17 @@ export default function JoinCompletePage() {
 
   if (status === 'loading') {
     return (
-      <main className="min-h-screen flex items-center justify-center p-4">
-        <p className="text-gray-500">チームに参加しています…</p>
+      <main className="min-h-screen flex items-center justify-center p-4 bg-navy-900 font-brand">
+        <p className="text-slate-400">チームに参加しています…</p>
       </main>
     );
   }
 
   if (status === 'unauthenticated') {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center p-4">
-        <p className="text-gray-500 mb-4">ログインが必要です</p>
-        <Link href={`/join/${teamPublicId}`} className="text-blue-600 underline">
+      <main className="min-h-screen flex flex-col items-center justify-center p-4 bg-navy-900 font-brand">
+        <p className="text-slate-400 mb-4">ログインが必要です</p>
+        <Link href={`/join/${teamPublicId}`} className="text-gold-400 hover:text-gold-300 underline">
           招待ページに戻る
         </Link>
       </main>
@@ -51,9 +51,9 @@ export default function JoinCompletePage() {
 
   if (error) {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center p-4">
-        <p className="text-red-600 mb-4">{error}</p>
-        <Link href="/" className="text-blue-600 underline">
+      <main className="min-h-screen flex flex-col items-center justify-center p-4 bg-navy-900 font-brand">
+        <p className="text-red-400 mb-4">{error}</p>
+        <Link href="/" className="text-gold-400 hover:text-gold-300 underline">
           ホームへ
         </Link>
       </main>
@@ -62,10 +62,10 @@ export default function JoinCompletePage() {
 
   if (done) {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center p-4">
-        <p className="text-green-600 font-medium mb-2">チームに参加しました！</p>
-        <p className="text-sm text-gray-500">ホームへリダイレクトします…</p>
-        <Link href="/" className="mt-4 text-blue-600 underline">
+      <main className="min-h-screen flex flex-col items-center justify-center p-4 bg-navy-900 font-brand">
+        <p className="text-emerald-400 font-medium mb-2">チームに参加しました！</p>
+        <p className="text-sm text-slate-400">ホームへリダイレクトします…</p>
+        <Link href="/" className="mt-4 text-gold-400 hover:text-gold-300 underline">
           今すぐホームへ
         </Link>
       </main>
@@ -73,8 +73,8 @@ export default function JoinCompletePage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-4">
-      <p className="text-gray-500">チームに参加しています…</p>
+    <main className="min-h-screen flex items-center justify-center p-4 bg-navy-900 font-brand">
+      <p className="text-slate-400">チームに参加しています…</p>
     </main>
   );
 }

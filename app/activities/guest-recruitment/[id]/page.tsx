@@ -3,6 +3,7 @@
 import { useSession } from 'next-auth/react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { ActivitiesNav } from '@/components/ActivitiesNav';
 import { useEffect, useState } from 'react';
 import { formatDateTimeRange } from '@/lib/date-utils';
 import { apiGet } from '@/lib/api-client';
@@ -150,7 +151,7 @@ export default function GuestRecruitmentDetailPage() {
   return (
     <main className="min-h-screen pb-24">
       <div className="max-w-lg mx-auto px-4 py-6">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center mb-4">
           <Link href="/activities" className="text-gold-400 hover:text-gold-300 text-sm">← 一覧へ</Link>
           <button
             type="button"
@@ -161,9 +162,10 @@ export default function GuestRecruitmentDetailPage() {
             {deleting ? '削除中…' : deleteConfirm ? '本当に削除する' : '削除'}
           </button>
         </div>
+        <ActivitiesNav />
 
         <span className="inline-block mt-4 px-2 py-0.5 text-xs font-medium bg-violet-500/30 text-violet-300 rounded">
-          ゲスト募集
+          外部募集
         </span>
         <h1 className="text-xl font-bold text-white mt-2 mb-2">
           {recruitment.title || recruitment.placeName}

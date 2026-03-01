@@ -3,6 +3,7 @@ import { Zen_Kaku_Gothic_New, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/Providers';
 import { BottomNav } from '@/components/BottomNav';
+import { APP_NAME } from '@/lib/branding';
 
 const zenKaku = Zen_Kaku_Gothic_New({
   subsets: ['latin'],
@@ -25,8 +26,13 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: '交流戦スケジュール | バスケチーム',
+  title: APP_NAME,
   description: '交流戦スケジューリング・出欠・カレンダー同期',
+  metadataBase: new URL('https://schedule-78918462248.asia-northeast1.run.app'),
+  openGraph: {
+    title: APP_NAME,
+    description: '交流戦スケジューリング・出欠・カレンダー同期',
+  },
 };
 
 export default function RootLayout({

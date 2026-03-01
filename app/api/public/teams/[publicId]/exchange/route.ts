@@ -16,22 +16,42 @@ export async function GET(
   });
   if (!team) return Response.json({ error: { code: 'NOT_FOUND', message: 'Team not found' } }, { status: 404 });
 
-  const candidates = await prisma.activitySchedule.findMany({
-    where: {
-      teamId: team.id,
-      activityType: '未定',
-      startAt: { gte: new Date() },
-    },
-    orderBy: { startAt: 'asc' },
-    select: {
-      id: true,
-      title: true,
-      placeName: true,
-      placeUrl: true,
-      startAt: true,
-      endAt: true,
-    },
-  });
+  const [candidatesRaw, tournamentSchedules] = await Promise.all([
+    prisma.activitySchedule.findMany({
+      where: {
+        teamId: team.id,
+        activityType: '未定',
+        startAt: { gte: new Date() },
+      },
+      orderBy: { startAt: 'asc' },
+      select: {
+        id: true,
+        title: true,
+        placeName: true,
+        placeUrl: true,
+        startAt: true,
+        endAt: true,
+      },
+    }),
+    prisma.activitySchedule.findMany({
+      where: {
+        teamId: team.id,
+        activityType: '大会',
+        startAt: { gte: new Date() },
+      },
+      select: { startAt: true, endAt: true },
+    }),
+  ]);
+
+  const overlaps = (cStart: Date, cEnd: Date) =>
+    tournamentSchedules.some(
+      (t) => cStart < t.endAt && t.startAt < cEnd
+    );
+
+  const candidates = candidatesRaw.map((c) => ({
+    ...c,
+    overlapsWithTournament: overlaps(c.startAt, c.endAt),
+  }));
 
   return apiSuccess({
     team: { id: team.id, name: team.name, publicId: team.publicId },

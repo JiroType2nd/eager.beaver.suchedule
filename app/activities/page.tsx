@@ -2,7 +2,9 @@
 
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import { Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { ActivitiesNav } from '@/components/ActivitiesNav';
 import { formatDateTimeRange, formatActivityTitleWithType } from '@/lib/date-utils';
 import { apiGet } from '@/lib/api-client';
 
@@ -64,24 +66,11 @@ export default function ActivitiesPage() {
     );
   }
 
-  const btnClass = 'px-3 py-2 border border-gold-500/70 text-gold-400 rounded-lg text-sm font-medium hover:bg-gold-500/10';
-  const btnPrimaryClass = 'px-4 py-2 bg-gold-500 text-navy-900 rounded-lg text-sm font-medium hover:bg-gold-400';
-
   return (
     <main className="min-h-screen pb-24">
       <div className="max-w-lg mx-auto px-4 py-6">
-        <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
-          <h1 className="text-xl font-bold text-white">活動日程</h1>
-          <div className="flex gap-2 flex-wrap">
-            <Link href="/activities/bulk-edit" className={btnClass}>一括編集</Link>
-            <Link href="/activities/bulk-attendance" className={btnClass}>一括出欠</Link>
-            <Link href="/activities/attendance-matrix" className={btnClass}>マトリックス</Link>
-            <Link href="/activities/calendar" className={btnClass}>カレンダー</Link>
-            <Link href="/activities/bulk-calendar" className={btnClass}>カレンダーに一括追加</Link>
-            <Link href="/activities/guest-recruitment/new" className="px-3 py-2 border border-violet-400/70 text-violet-300 rounded-lg text-sm font-medium hover:bg-violet-500/10">ゲスト募集</Link>
-            <Link href="/activities/new" className={btnPrimaryClass}>登録</Link>
-          </div>
-        </div>
+        <h1 className="text-xl font-bold text-white mb-4">活動日程</h1>
+        <ActivitiesNav />
 
         {loading ? (
           <p className="text-slate-400">読み込み中…</p>
@@ -107,7 +96,7 @@ export default function ActivitiesPage() {
                   href={`/activities/guest-recruitment/${item.data.id}`}
                   className="block p-4 bg-violet-500/10 border-l-4 border-violet-500 rounded-r-xl border border-violet-500/30 hover:border-violet-400/50 transition"
                 >
-                  <span className="inline-block px-2 py-0.5 text-xs font-medium bg-violet-500/20 text-violet-300 rounded mb-1">ゲスト募集</span>
+                  <span className="inline-block px-2 py-0.5 text-xs font-medium bg-violet-500/20 text-violet-300 rounded mb-1">外部募集</span>
                   <p className="font-medium text-white">{item.data.title || item.data.placeName}</p>
                   <p className="text-sm text-slate-400 mt-1">{formatDateTimeRange(item.data.startAt, item.data.endAt)}</p>
                   <p className="text-sm text-slate-500">{item.data.placeName}</p>
@@ -122,6 +111,15 @@ export default function ActivitiesPage() {
           </div>
         )}
       </div>
+
+      {/* FAB（活動登録） */}
+      <Link
+        href="/activities/new"
+        className="fixed bottom-20 right-4 w-12 h-12 rounded-full bg-gold-500 text-navy-900 shadow-lg flex items-center justify-center hover:bg-gold-400 transition z-10"
+        title="活動を登録"
+      >
+        <Plus className="w-6 h-6" strokeWidth={2.5} />
+      </Link>
     </main>
   );
 }

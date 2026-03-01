@@ -6,6 +6,7 @@ import Link from 'next/link';
 
 type TeamInfo = {
   teamName: string;
+  logoUrl?: string;
   publicId: string;
 };
 
@@ -21,7 +22,11 @@ export default function JoinTeamPage() {
       .then((r) => r.json())
       .then((d) => {
         if (d.error) throw new Error(d.error?.message ?? 'チームが見つかりません');
-        setTeam({ teamName: d.name, publicId: d.publicId });
+        setTeam({
+          teamName: d.name,
+          logoUrl: d.logoUrl,
+          publicId: d.publicId,
+        });
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
@@ -29,17 +34,17 @@ export default function JoinTeamPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen flex items-center justify-center p-4">
-        <p className="text-gray-500">読み込み中…</p>
+      <main className="min-h-screen flex items-center justify-center p-4 bg-navy-900 font-brand">
+        <p className="text-slate-400">読み込み中…</p>
       </main>
     );
   }
 
   if (error || !team) {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center p-4">
-        <p className="text-red-600 mb-4">{error ?? 'チームが見つかりません'}</p>
-        <Link href="/" className="text-blue-600 underline">
+      <main className="min-h-screen flex flex-col items-center justify-center p-4 bg-navy-900 font-brand">
+        <p className="text-red-400 mb-4">{error ?? 'チームが見つかりません'}</p>
+        <Link href="/" className="text-gold-400 hover:text-gold-300 underline">
           トップへ戻る
         </Link>
       </main>
@@ -51,24 +56,35 @@ export default function JoinTeamPage() {
   )}`;
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
-        <h1 className="text-xl font-bold mb-2">チームに参加</h1>
-        <p className="text-gray-600 mb-6">
-          <span className="font-medium text-gray-800">{team.teamName}</span>
-          <br />
+    <main className="min-h-screen flex flex-col items-center justify-center p-4 bg-navy-900 font-brand">
+      <div className="max-w-md w-full bg-navy-800/80 border border-navy-700 rounded-xl shadow-xl p-8 text-center">
+        <h1 className="text-slate-400 text-sm font-medium uppercase tracking-wide mb-4">チームに参加</h1>
+        <p className="text-white text-lg mb-4">
+          <span className="font-bold text-white">{team.teamName}</span>
           に参加しますか？
         </p>
-        <p className="text-sm text-gray-500 mb-6">
+        {team.logoUrl && (
+          <div className="flex justify-center mb-4">
+            <img
+              src={team.logoUrl}
+              alt=""
+              className="h-16 w-16 object-contain rounded-lg border border-navy-600 bg-navy-900/50"
+            />
+          </div>
+        )}
+        <p className="text-sm text-slate-400 mb-6">
           Googleアカウントでログインすると、自動でこのチームのメンバーとして登録されます。
         </p>
         <a
           href={signInUrl}
-          className="block w-full py-3 px-4 bg-blue-600 text-white rounded-lg font-medium text-center no-underline hover:bg-blue-700"
+          className="block w-full py-4 px-4 bg-gold-500 text-navy-900 rounded-xl font-medium text-center no-underline hover:bg-gold-400 transition"
         >
           Googleでログインして参加する
         </a>
-        <Link href="/" className="block mt-4 text-sm text-gray-500 underline">
+        <Link
+          href="/"
+          className="block mt-4 text-sm text-slate-400 hover:text-gold-400 no-underline transition"
+        >
           キャンセル
         </Link>
       </div>

@@ -10,9 +10,9 @@ export async function GET(
   const { publicId } = await params;
   const team = await prisma.team.findUnique({
     where: { publicId },
-    select: { name: true, publicId: true },
+    select: { name: true, logoUrl: true, publicId: true },
   });
   if (!team)
     return Response.json({ error: { code: 'NOT_FOUND', message: 'Team not found' } }, { status: 404 });
-  return apiSuccess({ name: team.name, publicId: team.publicId });
+  return apiSuccess({ name: team.name, logoUrl: team.logoUrl ?? undefined, publicId: team.publicId });
 }

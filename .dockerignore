@@ -1,0 +1,9 @@
+# イメージに含めない（ビルドを軽くする）
+node_modules
+.next
+.git
+.env
+.env.*
+!.env.example
+*.md
+docs

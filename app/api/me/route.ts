@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   const [team, profile] = await Promise.all([
     prisma.team.findUnique({
       where: { id: user.teamId },
-      select: { id: true, name: true, publicId: true },
+      select: { id: true, name: true, logoUrl: true, publicId: true },
     }),
     prisma.user.findUnique({
       where: { id: user.id },

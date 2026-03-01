@@ -2,6 +2,7 @@
 
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import { ActivitiesNav } from '@/components/ActivitiesNav';
 import { useEffect, useState } from 'react';
 import {
   format,
@@ -80,11 +81,8 @@ export default function ActivitiesCalendarPage() {
   return (
     <main className="min-h-screen pb-24">
       <div className="max-w-lg mx-auto px-4 py-6">
-        <div className="flex justify-between items-center mb-4">
-          <Link href="/activities" className="text-gold-400 hover:text-gold-300 text-sm">← 一覧へ</Link>
-          <h1 className="text-xl font-bold text-white">活動カレンダー</h1>
-          <div className="w-12" />
-        </div>
+        <h1 className="text-xl font-bold text-white mb-4">活動カレンダー</h1>
+        <ActivitiesNav />
 
         <div className="flex items-center justify-between mb-4">
           <button

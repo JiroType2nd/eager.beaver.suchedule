@@ -2,29 +2,6 @@ import { z } from 'zod';
 
 const timestamptz = z.string().datetime({ offset: true }).or(z.date());
 
-// ----- Slots -----
-export const createSlotBody = z.object({
-  startAt: timestamptz,
-  endAt: timestamptz,
-  placeName: z.string().min(1).max(500),
-  placeUrl: z.string().url().optional().nullable(),
-  placeReason: z.string().max(2000).optional().nullable(),
-  notes: z.string().max(2000).optional().nullable(),
-});
-export type CreateSlotBody = z.infer<typeof createSlotBody>;
-
-export const updateSlotBody = createSlotBody.partial().extend({
-  status: z.enum(['OPEN', 'BOOKED', 'CANCELLED']).optional(),
-});
-export type UpdateSlotBody = z.infer<typeof updateSlotBody>;
-
-// ----- Attendance Form -----
-export const createAttendanceFormBody = z.object({
-  activityIds: z.array(z.string().uuid()).min(1).max(20),
-  title: z.string().max(200).optional(),
-});
-export type CreateAttendanceFormBody = z.infer<typeof createAttendanceFormBody>;
-
 // ----- Attendance Link（出欠リンク、ログイン不要） -----
 export const createAttendanceLinkBody = z.object({
   activityIds: z.array(z.string().uuid()).min(1).max(20),
@@ -202,3 +179,10 @@ export const updateProfileBody = z.object({
   memberType: z.enum(['PLAYER', 'MANAGER']).optional(),
 });
 export type UpdateProfileBody = z.infer<typeof updateProfileBody>;
+
+// ----- Team（オーナー用: チーム名・ロゴ） -----
+export const updateTeamBody = z.object({
+  name: z.string().min(1).max(200).optional(),
+  logoUrl: z.string().url().max(2000).optional().nullable(),
+});
+export type UpdateTeamBody = z.infer<typeof updateTeamBody>;

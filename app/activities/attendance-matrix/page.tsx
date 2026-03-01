@@ -2,6 +2,7 @@
 
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import { ActivitiesNav } from '@/components/ActivitiesNav';
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
@@ -60,10 +61,8 @@ export default function AttendanceMatrixPage() {
   return (
     <main className="min-h-screen pb-24">
       <div className="max-w-6xl mx-auto px-4 py-6">
-        <div className="flex items-center justify-between mb-4">
-          <Link href="/activities" className="text-gold-400 hover:text-gold-300 text-sm">← 活動一覧へ</Link>
-          <h1 className="text-xl font-bold text-white">日程候補・出欠マトリックス</h1>
-        </div>
+        <h1 className="text-xl font-bold text-white mb-2">日程候補・出欠マトリックス</h1>
+        <ActivitiesNav />
         <p className="text-sm text-slate-400 mb-4">
           各自の出欠状況を変更するには名前のリンクをクリックしてください。
         </p>

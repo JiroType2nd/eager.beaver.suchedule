@@ -13,6 +13,7 @@ type Candidate = {
   placeUrl: string | null;
   startAt: string;
   endAt: string;
+  overlapsWithTournament?: boolean;
 };
 
 type Data = {
@@ -200,73 +201,73 @@ export default function ExchangePage() {
     }
   };
 
-  if (loading) return <main className="min-h-screen p-4"><p className="text-gray-500">読み込み中…</p></main>;
-  if (error && !data) return <main className="min-h-screen p-4"><p className="text-red-600">{error}</p></main>;
-  if (!data) return <main className="min-h-screen p-4"><p className="text-gray-500">チームが見つかりません</p></main>;
+  if (loading) return <main className="min-h-screen p-4 bg-navy-900"><p className="text-slate-400">読み込み中…</p></main>;
+  if (error && !data) return <main className="min-h-screen p-4 bg-navy-900"><p className="text-red-400">{error}</p></main>;
+  if (!data) return <main className="min-h-screen p-4 bg-navy-900"><p className="text-slate-400">チームが見つかりません</p></main>;
 
   if (mode === 'custom') {
     return (
-      <main className="min-h-screen pb-24">
+      <main className="min-h-screen pb-24 bg-navy-900">
         <div className="max-w-lg mx-auto px-4 py-6">
-          <button onClick={() => setMode('main')} className="text-blue-600 text-sm mb-4">← 戻る</button>
-          <h1 className="text-xl font-bold mb-2">交流戦日程の調整</h1>
+          <button onClick={() => setMode('main')} className="text-gold-400 hover:text-gold-300 text-sm mb-4">← 戻る</button>
+          <h1 className="text-xl font-bold text-white mb-2">交流戦日程の調整</h1>
 
-          <section className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-            <h2 className="font-medium text-amber-800 mb-2">貴チームが確保できている日程から調整を行う場合の流れ</h2>
-            <ol className="text-sm text-amber-700 list-decimal list-inside space-y-1">
+          <section className="mb-6 p-4 bg-navy-800/80 border border-navy-600 rounded-lg">
+            <h2 className="font-medium text-gold-400 mb-2">貴チームが確保できている日程から調整を行う場合の流れ</h2>
+            <ol className="text-sm text-slate-300 list-decimal list-inside space-y-1">
               <li>日程・実施場所を入力していただく</li>
               <li>弊チームの出欠を確認しご連絡いたします（LINE等）</li>
               <li>双方問題なければ日程確定</li>
             </ol>
           </section>
 
-          {success && <p className="mb-4 p-3 bg-green-50 text-green-800 rounded-lg text-sm">{success}</p>}
-          {error && <p className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{error}</p>}
+          {success && <p className="mb-4 p-3 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-lg text-sm">{success}</p>}
+          {error && <p className="mb-4 p-3 bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg text-sm">{error}</p>}
           <form onSubmit={(e) => { e.preventDefault(); submitCustomDates(); }} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">チーム名 *</label>
+              <label className="block text-sm font-medium text-slate-300 mb-1">チーム名 *</label>
               <input
                 type="text"
                 value={opponentName}
                 onChange={(e) => setOpponentName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                className="w-full px-3 py-2 bg-navy-800 border border-navy-600 rounded-lg text-white placeholder-slate-500"
                 required
                 placeholder="例: ○○バスケットボールクラブ"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">日程（複数可）* 各日程ごとに日付・時間・実施場所を選択してください</label>
+              <label className="block text-sm font-medium text-slate-300 mb-2">日程（複数可）* 各日程ごとに日付・時間・実施場所を選択してください</label>
               {dates.map((d, i) => (
-                <div key={i} className="mb-4 p-4 border border-gray-200 rounded-lg space-y-2">
+                <div key={i} className="mb-4 p-4 bg-navy-800/60 border border-navy-600 rounded-lg space-y-2">
                   <div className="flex gap-2 items-center flex-wrap">
                     <div className="flex-1 min-w-[120px]">
-                      <label className="block text-xs text-gray-600 mb-0.5">日付 *</label>
+                      <label className="block text-xs text-slate-400 mb-0.5">日付 *</label>
                       <input
                         type="date"
                         value={d.date}
                         onChange={(e) => updateDate(i, 'date', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                        className="w-full px-3 py-2 bg-navy-800 border border-navy-600 rounded-lg text-sm text-white"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-gray-600 mb-0.5">開始 *</label>
+                      <label className="block text-xs text-slate-400 mb-0.5">開始 *</label>
                       <select
                         value={d.startTime}
                         onChange={(e) => updateDate(i, 'startTime', e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                        className="px-3 py-2 bg-navy-800 border border-navy-600 rounded-lg text-sm text-white"
                       >
                         {TIME_OPTIONS.map((t) => (
                           <option key={t} value={t}>{t}</option>
                         ))}
                       </select>
                     </div>
-                    <span className="text-gray-500 self-end pb-2">～</span>
+                    <span className="text-slate-500 self-end pb-2">～</span>
                     <div>
-                      <label className="block text-xs text-gray-600 mb-0.5">終了 *</label>
+                      <label className="block text-xs text-slate-400 mb-0.5">終了 *</label>
                       <select
                         value={d.endTime}
                         onChange={(e) => updateDate(i, 'endTime', e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                        className="px-3 py-2 bg-navy-800 border border-navy-600 rounded-lg text-sm text-white"
                       >
                         {TIME_OPTIONS.map((t) => (
                           <option key={t} value={t}>{t}</option>
@@ -274,17 +275,17 @@ export default function ExchangePage() {
                       </select>
                     </div>
                     {dates.length > 1 && (
-                      <button type="button" onClick={() => removeDate(i)} className="text-red-600 text-sm px-2 self-end pb-2">
+                      <button type="button" onClick={() => removeDate(i)} className="text-red-400 hover:text-red-300 text-sm px-2 self-end pb-2">
                         削除
                       </button>
                     )}
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-600 mb-1">実施場所 *</label>
+                    <label className="block text-xs text-slate-400 mb-1">実施場所 *</label>
                     <select
                       value={d.placeSelect}
                       onChange={(e) => updateDate(i, 'placeSelect', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      className="w-full px-3 py-2 bg-navy-800 border border-navy-600 rounded-lg text-sm text-white"
                       required
                     >
                       <option value="">選択してください</option>
@@ -297,37 +298,37 @@ export default function ExchangePage() {
                   {d.placeSelect === VENUE_OTHER && (
                     <div className="space-y-2">
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">実施場所名 *</label>
+                        <label className="block text-xs text-slate-400 mb-1">実施場所名 *</label>
                         <input
                           type="text"
                           value={d.placeOtherName}
                           onChange={(e) => updateDate(i, 'placeOtherName', e.target.value)}
                           placeholder="例: ○○市民体育館"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          className="w-full px-3 py-2 bg-navy-800 border border-navy-600 rounded-lg text-sm text-white placeholder-slate-500"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">実施場所URL</label>
+                        <label className="block text-xs text-slate-400 mb-1">実施場所URL</label>
                         <input
                           type="url"
                           value={d.placeUrl}
                           onChange={(e) => updateDate(i, 'placeUrl', e.target.value)}
                           placeholder="https://..."
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          className="w-full px-3 py-2 bg-navy-800 border border-navy-600 rounded-lg text-sm text-white placeholder-slate-500"
                         />
                       </div>
                     </div>
                   )}
                 </div>
               ))}
-              <button type="button" onClick={addDate} className="text-sm text-blue-600 mt-1">
+              <button type="button" onClick={addDate} className="text-sm text-gold-400 hover:text-gold-300 mt-1">
                 + 日程を追加
               </button>
             </div>
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium disabled:opacity-50"
+              className="w-full py-3 bg-gold-500 text-navy-900 rounded-lg font-medium disabled:opacity-50 hover:bg-gold-400"
             >
               {submitting ? '送信中…' : 'この日程で提案する'}
             </button>
@@ -338,73 +339,78 @@ export default function ExchangePage() {
   }
 
   return (
-    <main className="min-h-screen pb-24">
+    <main className="min-h-screen pb-24 bg-navy-900">
       <div className="max-w-lg mx-auto px-4 py-6">
-        <h1 className="text-xl font-bold mb-2">{data.team.name}</h1>
-        <p className="text-sm text-gray-500 mb-4">交流戦の日程調整</p>
+        <h1 className="text-xl font-bold text-white mb-2">{data.team.name}</h1>
+        <p className="text-sm text-slate-400 mb-4">交流戦の日程調整</p>
 
-        <section className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-          <h2 className="font-medium text-amber-800 mb-2">貴チームが確保できている日程から調整を行う場合</h2>
-          <ol className="text-sm text-amber-700 list-decimal list-inside space-y-1 mb-3">
+        <section className="mb-6 p-4 bg-navy-800/80 border border-navy-600 rounded-lg">
+          <h2 className="font-medium text-gold-400 mb-2">貴チームが確保できている日程から調整を行う場合</h2>
+          <ol className="text-sm text-slate-300 list-decimal list-inside space-y-1 mb-3">
             <li>日程・実施場所を入力していただく</li>
             <li>弊チームの出欠を確認しご連絡いたします（LINE等）</li>
             <li>双方問題なければ日程確定</li>
           </ol>
           <button
             onClick={() => setMode('custom')}
-            className="w-full py-2 px-4 bg-amber-500 text-white rounded-lg text-sm font-medium"
+            className="w-full py-2 px-4 bg-gold-500 text-navy-900 rounded-lg text-sm font-medium hover:bg-gold-400"
           >
             日程・実施場所を入力する
           </button>
         </section>
 
-        <section className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <h2 className="font-medium text-blue-800 mb-2">弊チームが確保できている体育館で日程調整を行う場合</h2>
-          <ol className="text-sm text-blue-700 list-decimal list-inside space-y-1">
+        <section className="mb-6 p-4 bg-navy-800/80 border border-navy-600 rounded-lg">
+          <h2 className="font-medium text-gold-400 mb-2">弊チームが確保できている体育館で日程調整を行う場合</h2>
+          <ol className="text-sm text-slate-300 list-decimal list-inside space-y-1">
             <li>以下の候補日程から、あなたのチームのメンバーが集まれる日程を確認する</li>
             <li>貴チームの都合の良い日程で「この日程で提案する」を押してください。（※できるだけ複数日程提案いただけると助かります。）</li>
             <li>申し込みいただいた日程で我々チームの参加可能人数を確認でき次第、確定とさせていただきます。</li>
           </ol>
         </section>
 
-        <p className="text-xs text-amber-700 mb-4">
+        <p className="text-xs text-gold-400/90 mb-4">
           ※ 先着順のため、途中で候補日程が他チームとの交流戦が決まってしまった場合は、候補日程が先着順となります。また、大会と日程が被ってしまった場合、急遽交流戦確定後でもキャンセルになる場合がございます。
         </p>
 
-        {success && <p className="mb-4 p-3 bg-green-50 text-green-800 rounded-lg text-sm">{success}</p>}
-        {error && <p className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{error}</p>}
+        {success && <p className="mb-4 p-3 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-lg text-sm">{success}</p>}
+        {error && <p className="mb-4 p-3 bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg text-sm">{error}</p>}
 
         <section>
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase">候補日程</h2>
+            <h2 className="text-sm font-semibold text-slate-400 uppercase">候補日程</h2>
             {data.candidates.length > 0 && (
               <button
                 type="button"
                 onClick={toggleSelectAll}
-                className="text-sm text-blue-600"
+                className="text-sm text-gold-400 hover:text-gold-300"
               >
                 {selectedIds.size === data.candidates.length ? 'すべて解除' : 'すべて選択'}
               </button>
             )}
           </div>
           {data.candidates.length === 0 ? (
-            <p className="text-gray-500 py-6">現在、候補日程はありません</p>
+            <p className="text-slate-500 py-6">現在、候補日程はありません</p>
           ) : (
             <>
               <div className="space-y-3">
                 {data.candidates.map((c) => (
-                  <div key={c.id} className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                  <div key={c.id} className="p-4 bg-navy-800/80 border border-navy-600 rounded-lg">
                     <label className="flex items-start gap-3 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={selectedIds.has(c.id)}
                         onChange={() => toggleSelect(c.id)}
-                        className="mt-1 rounded"
+                        className="mt-1 rounded border-navy-500 bg-navy-800 text-gold-500 focus:ring-gold-500"
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium">{c.title || c.placeName}</p>
-                        <p className="text-sm text-gray-600 mt-1">{formatDateTimeRange(c.startAt, c.endAt)}</p>
-                        <p className="text-sm text-gray-500">{c.placeName}</p>
+                        <p className="font-medium text-white">{c.title || c.placeName}</p>
+                        <p className="text-sm text-slate-400 mt-1">{formatDateTimeRange(c.startAt, c.endAt)}</p>
+                        <p className="text-sm text-slate-500">{c.placeName}</p>
+                        {c.overlapsWithTournament && (
+                          <p className="text-xs text-amber-400/90 mt-2 italic">
+                            本日程は大会の候補日と重複しています。大会日程次第では確定後でもリスケさせていただく可能性がございます。
+                          </p>
+                        )}
                       </div>
                     </label>
                     {proposingId === c.id ? (
@@ -414,19 +420,19 @@ export default function ExchangePage() {
                         value={opponentName}
                         onChange={(e) => setOpponentName(e.target.value)}
                         placeholder="チーム名"
-                        className="w-full px-3 py-2 border rounded-lg text-sm"
+                        className="w-full px-3 py-2 bg-navy-800 border border-navy-600 rounded-lg text-sm text-white placeholder-slate-500"
                       />
                       <div className="flex gap-2">
                         <button
                           onClick={() => submitFromCandidate(c.id)}
                           disabled={submitting}
-                          className="flex-1 py-2 bg-blue-600 text-white rounded-lg text-sm disabled:opacity-50"
+                          className="flex-1 py-2 bg-gold-500 text-navy-900 rounded-lg text-sm disabled:opacity-50 hover:bg-gold-400"
                         >
                           送信
                         </button>
                         <button
                           onClick={() => { setProposingId(null); setOpponentName(''); setError(''); }}
-                          className="px-4 py-2 border rounded-lg text-sm"
+                          className="px-4 py-2 border border-navy-500 rounded-lg text-sm text-slate-300 hover:bg-navy-700"
                         >
                           キャンセル
                         </button>
@@ -435,7 +441,7 @@ export default function ExchangePage() {
                   ) : (
                     <button
                       onClick={() => { setProposingId(c.id); setError(''); }}
-                      className="mt-3 px-4 py-2 bg-blue-100 text-blue-800 rounded-lg text-sm font-medium"
+                      className="mt-3 px-4 py-2 bg-gold-500 text-navy-900 rounded-lg text-sm font-medium hover:bg-gold-400"
                     >
                       この日程で提案する
                     </button>
@@ -443,36 +449,36 @@ export default function ExchangePage() {
                   </div>
                 ))}
               </div>
-              <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                <h3 className="font-medium text-amber-800 mb-1">出欠リンクを作成</h3>
-                <p className="text-sm text-amber-700 mb-3">
+              <div className="mt-4 p-4 bg-navy-800/80 border border-navy-600 rounded-lg">
+                <h3 className="font-medium text-gold-400 mb-1">出欠リンクを作成</h3>
+                <p className="text-sm text-slate-300 mb-3">
                   選択した日程で、貴チームのメンバーが出欠を登録できるリンクを作成できます。
                 </p>
-                <p className="text-sm font-bold text-amber-900 mb-2 bg-amber-100 -mx-2 -my-1 px-3 py-2 rounded border border-amber-300">
+                <p className="text-sm font-bold text-gold-400/90 mb-2 bg-gold-500/10 -mx-2 -my-1 px-3 py-2 rounded border border-gold-500/30">
                   ※ 発行したリンクは必ず保存してください。同じリンクを再度表示できません。
                 </p>
-                <p className="text-xs text-amber-600 mb-2">
+                <p className="text-xs text-slate-400 mb-2">
                   1件以上チェックを入れてからボタンを押してください。
                 </p>
                 <button
                   type="button"
                   onClick={handleCreateAttendanceLink}
                   disabled={linkCreating}
-                  className="w-full py-2 px-4 border border-amber-600 text-amber-700 rounded-lg text-sm font-medium hover:bg-amber-100 disabled:opacity-50"
+                  className="w-full py-2 px-4 border border-gold-500/70 text-gold-400 rounded-lg text-sm font-medium hover:bg-gold-500/10 disabled:opacity-50"
                 >
                   {linkCreating ? '作成中…' : '選択した日程で出欠リンクを作成'}
                 </button>
                 {attendanceLinkUrl && (
                   <div className="mt-3 space-y-2">
-                    <p className="text-sm font-bold text-amber-900 bg-amber-100 px-3 py-2 rounded border border-amber-300">
+                    <p className="text-sm font-bold text-gold-400/90 bg-gold-500/10 px-3 py-2 rounded border border-gold-500/30">
                       必ずリンクを保存してください（コピーまたはブックマーク）
                     </p>
-                    <div className="flex gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex gap-2 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
                     <input
                       type="text"
                       readOnly
                       value={attendanceLinkUrl}
-                      className="flex-1 px-3 py-2 bg-white border border-green-300 rounded text-sm"
+                      className="flex-1 px-3 py-2 bg-navy-800 border border-navy-600 rounded text-sm text-slate-200"
                     />
                     <button
                       type="button"
@@ -481,7 +487,7 @@ export default function ExchangePage() {
                         setSuccess('URLをコピーしました');
                         setTimeout(() => setSuccess(''), 2000);
                       }}
-                      className="px-4 py-2 bg-green-600 text-white rounded text-sm font-medium"
+                      className="px-4 py-2 bg-gold-500 text-navy-900 rounded text-sm font-medium hover:bg-gold-400"
                     >
                       コピー
                     </button>

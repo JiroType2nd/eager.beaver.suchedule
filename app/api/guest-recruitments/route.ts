@@ -4,6 +4,8 @@ import { requireSessionUser } from '@/lib/auth';
 import { apiError, apiSuccess } from '@/lib/api-response';
 import { createGuestRecruitmentBody } from '@/lib/zod/schemas';
 
+export const dynamic = 'force-dynamic';
+
 /** ゲスト募集一覧。?upcoming=1 でこれから開始のもののみ */
 export async function GET(req: NextRequest) {
   const user = await requireSessionUser(req);

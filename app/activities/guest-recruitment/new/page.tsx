@@ -3,6 +3,7 @@
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { ActivitiesNav } from '@/components/ActivitiesNav';
 import { useState } from 'react';
 import { VENUE_OPTIONS, VENUE_OTHER } from '@/lib/venue-options';
 import { GUEST_RECRUITMENT_LEVELS } from '@/lib/zod/schemas';
@@ -115,8 +116,8 @@ export default function NewGuestRecruitmentPage() {
   return (
     <main className="min-h-screen pb-24">
       <div className="max-w-lg mx-auto px-4 py-6">
-        <Link href="/activities" className="text-gold-400 hover:text-gold-300 text-sm">← 一覧へ</Link>
-        <h1 className="text-xl font-bold text-white mt-4 mb-6">ゲスト募集を行う</h1>
+        <h1 className="text-xl font-bold text-white mb-2">外部募集を行う</h1>
+        <ActivitiesNav />
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && <p className="text-red-300 bg-red-500/20 text-sm rounded px-2 py-1">{error}</p>}
@@ -128,7 +129,7 @@ export default function NewGuestRecruitmentPage() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="w-full px-3 py-2 bg-navy-800 border border-navy-700 rounded-lg text-white placeholder-slate-500"
-              placeholder="例: ○○サークル主催 ゲスト募集（任意）"
+              placeholder="例: ○○サークル主催 外部募集（任意）"
             />
           </div>
 

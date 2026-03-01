@@ -110,6 +110,15 @@ export default function SlotsPage() {
       <div className="max-w-lg mx-auto px-4 py-6">
         <h1 className="text-xl font-bold text-white mb-2">交流戦日程</h1>
 
+        <div className="mb-4">
+          <Link
+            href="/proposals/new"
+            className="inline-flex items-center justify-center w-full py-3 bg-gold-500 text-navy-900 rounded-xl font-medium hover:bg-gold-400 transition"
+          >
+            提案を作成（日時・場所を入力）
+          </Link>
+        </div>
+
         <section className="mb-6 p-4 bg-gold-500/10 border border-gold-500/30 rounded-xl">
           <h2 className="font-medium text-gold-400 mb-2">相手チームに日程調整を送る</h2>
           <p className="text-sm text-slate-300 mb-2">

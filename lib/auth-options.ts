@@ -2,8 +2,30 @@ import type { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import { ensureUserByGoogleSub } from '@/lib/auth-google';
 
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
+// Secret Manager 等で改行混入すると client_id に余分な文字が付き 401 invalid_client になるため、1行目のみ採用
+function takeFirstLine(s: string | undefined): string {
+  if (!s || typeof s !== 'string') return '';
+  const first = s.split(/\r?\n/)[0] ?? '';
+  return first.trim();
+}
+const GOOGLE_CLIENT_ID = takeFirstLine(process.env.GOOGLE_CLIENT_ID);
+const GOOGLE_CLIENT_SECRET = takeFirstLine(process.env.GOOGLE_CLIENT_SECRET);
+
+// 本番で 401 invalid_client 調査用: 長さ・先頭・末尾をログ（改行混入の有無を確認）
+if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'production') {
+  const len = GOOGLE_CLIENT_ID.length;
+  const expectedSuffix = '.apps.googleusercontent.com';
+  const prefix = GOOGLE_CLIENT_ID ? `${GOOGLE_CLIENT_ID.slice(0, 30)}...` : 'MISSING';
+  const endsCorrectly = GOOGLE_CLIENT_ID.endsWith(expectedSuffix);
+  console.log('[Auth] GOOGLE_CLIENT_ID length:', len, 'prefix:', prefix, 'endsWith(.apps.googleusercontent.com):', endsCorrectly);
+}
+
+// 必要なスコープのみ指定。詳細は docs/OAUTH_SCOPES.md を参照。
+// - openid, email, profile: サインイン・ユーザー識別・表示名・メール（Sensitive scope、警告の要因）
+// - calendar, calendar.events: カレンダー連携（lib/google-calendar.ts）
+const GOOGLE_SCOPE =
+  'openid email profile ' +
+  'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.events';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -12,7 +34,7 @@ export const authOptions: NextAuthOptions = {
       clientSecret: GOOGLE_CLIENT_SECRET,
       authorization: {
         params: {
-          scope: 'openid email profile https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/forms.body https://www.googleapis.com/auth/drive.file',
+          scope: GOOGLE_SCOPE,
           access_type: 'offline',
           prompt: 'consent',
         },

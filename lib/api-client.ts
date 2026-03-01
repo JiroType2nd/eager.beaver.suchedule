@@ -2,7 +2,7 @@
  * 認証付き API クライアント（クッキーを送信）
  */
 export async function apiGet<T>(url: string): Promise<T> {
-  const res = await fetch(url, { credentials: 'include' });
+  const res = await fetch(url, { credentials: 'include', cache: 'no-store' });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error((err as { error?: { message?: string } })?.error?.message ?? res.statusText);

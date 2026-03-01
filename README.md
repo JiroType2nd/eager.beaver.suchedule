@@ -1,6 +1,6 @@
 # 交流戦スケジュール（バスケチーム向け）
 
-Next.js (App Router) + TypeScript による、交流戦スケジューリング・出欠管理・Googleカレンダー同期・スタッツ/スコア/動画保管の Web アプリです。スマホ UI 最優先。インフラは GCP（Cloud Run + Cloud SQL Postgres + Cloud Storage + Secret Manager + Cloud Tasks）を想定しています。
+Next.js (App Router) + TypeScript による、交流戦スケジューリング・出欠管理・Googleカレンダー同期・スタッツ/スコア/動画保管の Web アプリです。スマホ UI 最優先。インフラは GCP（Cloud Run + DB + Cloud Storage + Secret Manager + Cloud Tasks）を想定しています。DB は **PostgreSQL** に統一しており、開発・本番とも [Neon](https://neon.tech)（無料枠）または Cloud SQL を利用します。個人開発では同一 Neon プロジェクトで問題ありません。セットアップは **[docs/NEON_SETUP.md](docs/NEON_SETUP.md)** を参照してください。
 
 ## リポジトリ構成
 
@@ -9,12 +9,11 @@ schedule/
 ├── app/
 │   ├── api/                    # Route Handlers (JSON API)
 │   │   ├── auth/[...nextauth]/ # Google OAuth (NextAuth)
-│   │   ├── slots/              # 枠 CRUD
-│   │   ├── proposals/          # 提案・出欠・OK・確定
-│   │   ├── events/             # 確定イベント・更新・中止
-│   │   ├── matches/            # 試合記録・Asset・Video
+│   │   ├── proposals/         # 提案・出欠・OK・確定
+│   │   ├── events/            # 確定イベント・更新・中止
+│   │   ├── matches/           # 試合記録・Asset・Video
 │   │   ├── tasks/sync-calendar/# Cloud Tasks → カレンダー同期 worker
-│   │   └── public/teams/[publicId]/  # 外部向け（slots, proposals, THEIR ok）
+│   │   └── public/teams/[publicId]/  # 外部向け（exchange, proposals, THEIR ok）
 │   ├── layout.tsx
 │   ├── page.tsx
 │   └── globals.css
@@ -50,7 +49,7 @@ npm install
 
 `.env.example` をコピーして `.env` を作成し、以下を設定してください。
 
-- `DATABASE_URL` … PostgreSQL の接続文字列（Cloud SQL またはローカル）
+- `DATABASE_URL` … PostgreSQL の接続文字列（開発・本番とも Neon 推奨。[docs/NEON_SETUP.md](docs/NEON_SETUP.md) 参照）
 - `NEXTAUTH_SECRET` … ランダムな文字列（32 文字以上）
 - `NEXTAUTH_URL` … アプリの URL（開発時は `http://localhost:3000`）
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` … Google Cloud で OAuth 2.0 クライアントを作成し、Calendar API を有効化
@@ -59,12 +58,16 @@ npm install
   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
   ```
 
-### 3. DB マイグレーション
+### 3. DB の準備
+
+PostgreSQL（Neon など）を使う場合:
 
 ```bash
 npx prisma generate
-npx prisma migrate dev --name init
+npx prisma db push
 ```
+
+（マイグレーション履歴で管理する場合は `npx prisma migrate dev --name init_postgres` を利用。詳しくは [docs/NEON_SETUP.md](docs/NEON_SETUP.md) を参照。）
 
 ### 4. シード（任意）
 
@@ -86,10 +89,7 @@ npm run dev
 | メソッド | パス | 説明 |
 |----------|------|------|
 | GET/POST | `/api/auth/...` | NextAuth（Google） |
-| GET/POST | `/api/slots` | 枠一覧・作成 |
-| GET/PATCH | `/api/slots/[id]` | 枠詳細・更新 |
-| GET | `/api/public/teams/[publicId]/slots` | 外部: OPEN 枠一覧 |
-| POST | `/api/proposals` | 提案作成 |
+| POST | `/api/proposals` | 提案作成（日時・場所を入力。枠機能は廃止） |
 | GET/PATCH | `/api/proposals/[id]` | 提案詳細・更新 |
 | PUT/GET | `/api/proposals/[id]/availability` | 出欠入力・取得 |
 | POST | `/api/proposals/[id]/ok` | 自チーム OK (OUR) |
@@ -106,8 +106,7 @@ npm run dev
 
 ## 外部向けページ（ログイン不要）
 
-- 未決定枠一覧: `/t/[teamPublicId]/slots`（要実装: 上記 API を利用）
-- 提案作成: 同上から「この枠で提案」「日時を入力して提案」
+- 日程調整・提案: `/t/[teamPublicId]/exchange` で相手チームが候補日程から出欠リンク作成や日時を入力して提案可能（枠一覧は廃止）
 
 ## 注意事項
 

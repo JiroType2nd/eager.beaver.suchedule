@@ -3,6 +3,7 @@
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { ActivitiesNav } from '@/components/ActivitiesNav';
 import { useEffect, useState } from 'react';
 import { formatDateTimeRange, formatActivityTitleWithType } from '@/lib/date-utils';
 import { apiGet } from '@/lib/api-client';
@@ -79,11 +80,11 @@ export default function BulkAttendancePage() {
   return (
     <main className="min-h-screen pb-24">
       <div className="max-w-lg mx-auto px-4 py-6">
-        <Link href="/activities" className="text-gold-400 hover:text-gold-300 text-sm">← 一覧へ</Link>
-        <h1 className="text-xl font-bold text-white mt-4 mb-2">一括で出欠を登録</h1>
-        <p className="text-sm text-slate-400 mb-6">
+        <h1 className="text-xl font-bold text-white mb-2">一括で出欠を登録</h1>
+        <p className="text-sm text-slate-400 mb-4">
           これからの活動日程に一括で出欠を登録できます。
         </p>
+        <ActivitiesNav />
 
         {loading ? (
           <p className="text-slate-400">読み込み中…</p>
