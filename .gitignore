@@ -28,6 +28,11 @@ build/
 .env.local
 .env.*.local
 
+# Database files（シークレット含むため除外）
+prisma/dev.db
+prisma/*.db
+prisma/*.db-journal
+
 # Misc
 *.bak
 *.tmp
