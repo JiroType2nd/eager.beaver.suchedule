@@ -11,7 +11,7 @@ export default function PrivacyPage() {
     <main className="min-h-screen pb-24 bg-navy-900 font-brand">
       <div className="max-w-lg mx-auto px-4 py-6">
         <h1 className="text-xl font-bold text-white mb-6">プライバシーポリシー</h1>
-        <p className="text-sm text-slate-400 mb-6">最終更新日: 2025年2月25日</p>
+        <p className="text-sm text-slate-400 mb-6">最終更新日: 2026年5月24日</p>
 
         <div className="space-y-6 text-slate-300 text-sm leading-relaxed">
           <section>
@@ -66,6 +66,32 @@ export default function PrivacyPage() {
             <h2 className="text-base font-semibold text-gold-500 mb-2">6. 改定</h2>
             <p>
               本ポリシーは、必要に応じて改定することがあります。重要な変更がある場合は、本サイト上で告知します。
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-base font-semibold text-gold-500 mb-2">7. Google API から取得するデータについて</h2>
+            <p className="mb-2">
+              本サービスは、利用者が「Googleカレンダー連携」機能を明示的に有効にした場合に限り、Google Calendar API を通じて以下のデータにアクセスします。
+            </p>
+            <ul className="list-disc pl-5 space-y-1 text-slate-400 mb-2">
+              <li>カレンダー一覧（本サービス専用カレンダーの有無を確認するため）</li>
+              <li>カレンダーイベント（活動予定の作成・更新・削除のため）</li>
+            </ul>
+            <p className="mb-2">
+              取得したGoogleカレンダーのデータは、本サービスの活動スケジュールとの同期のみに使用します。広告目的での利用や第三者への提供は行いません。カレンダーへのアクセスは、利用者の明示的な同意のもとでのみ実行されます。
+            </p>
+            <p>
+              本サービスによる Google API を通じたデータの取り扱いは、
+              <a
+                href="https://developers.google.com/terms/api-services-user-data-policy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gold-400 hover:text-gold-300 underline"
+              >
+                Google API Services User Data Policy
+              </a>
+              に準拠しています。
             </p>
           </section>
         </div>
