@@ -54,11 +54,16 @@ export type EventPayload = {
   notes?: string;
 };
 
+export type UpsertResult = {
+  googleEventId: string;
+  skipped: boolean;
+};
+
 export async function upsertCalendarEvent(
   userId: string,
   googleEventId: string | null,
   payload: EventPayload
-): Promise<string> {
+): Promise<UpsertResult> {
   const { calendar, calendarId } = await getCalendarClient(userId);
   const start = payload.startAt.toISOString();
   const end = payload.endAt.toISOString();
@@ -75,18 +80,40 @@ export async function upsertCalendarEvent(
     body.description = parts.join('\n');
   }
   if (googleEventId) {
-    const res = await calendar.events.update({
-      calendarId: calendarId!,
-      eventId: googleEventId,
-      requestBody: body,
-    });
-    return res.data.id!;
+    try {
+      const res = await calendar.events.update({
+        calendarId: calendarId!,
+        eventId: googleEventId,
+        requestBody: body,
+      });
+      return { googleEventId: res.data.id!, skipped: false };
+    } catch (e: unknown) {
+      const status = (e as { code?: number })?.code;
+      if (status !== 404 && status !== 410) throw e;
+      // Event was deleted from Google Calendar — fall through to duplicate check + insert
+    }
   }
+
+  const existing = await calendar.events.list({
+    calendarId: calendarId!,
+    timeMin: start,
+    timeMax: end,
+    q: payload.title,
+    singleEvents: true,
+    maxResults: 10,
+  });
+  const duplicate = existing.data.items?.find(
+    (ev) => ev.summary === payload.title && ev.start?.dateTime === start
+  );
+  if (duplicate?.id) {
+    return { googleEventId: duplicate.id, skipped: true };
+  }
+
   const res = await calendar.events.insert({
     calendarId: calendarId!,
     requestBody: body,
   });
-  return res.data.id!;
+  return { googleEventId: res.data.id!, skipped: false };
 }
 
 export async function deleteCalendarEvent(userId: string, googleEventId: string): Promise<void> {

@@ -71,13 +71,6 @@ export default function BulkCalendarPage() {
     let skip = 0;
     const errors: string[] = [];
     for (const id of ids) {
-      const activity = activityMap[id];
-      // 既にインポート済み（SYNCED）のものは重ねてインポートしない
-      if (activity?.syncStatus === 'SYNCED') {
-        skip++;
-        setSkipCount(skip);
-        continue;
-      }
       try {
         const res = await fetch(`/api/activities/${id}/sync-calendar`, {
           method: 'POST',
@@ -85,9 +78,13 @@ export default function BulkCalendarPage() {
         });
         const data = await res.json();
         if (res.ok && data?.ok) {
-          success++;
-          setSuccessCount(success);
-          // ローカル状態を更新して次回表示で「インポート済み」になる
+          if (data.skipped) {
+            skip++;
+            setSkipCount(skip);
+          } else {
+            success++;
+            setSuccessCount(success);
+          }
           setActivities((prev) =>
             prev.map((a) => (a.id === id ? { ...a, syncStatus: 'SYNCED', syncLastError: null } : a))
           );
@@ -136,7 +133,7 @@ export default function BulkCalendarPage() {
             {(successCount > 0 || skipCount > 0 || failCount > 0) && (
               <div className="space-y-1 text-sm">
                 {successCount > 0 && <p className="text-green-400">{successCount}件をGoogleカレンダーに追加しました</p>}
-                {skipCount > 0 && <p className="text-slate-400">{skipCount}件は既にインポート済みのためスキップしました</p>}
+                {skipCount > 0 && <p className="text-slate-400">{skipCount}件はGoogleカレンダーに既に登録済みのためスキップしました</p>}
                 {failCount > 0 && (
                   <p className="text-red-300">
                     {failCount}件が失敗しました

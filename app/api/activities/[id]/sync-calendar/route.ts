@@ -43,7 +43,7 @@ export async function POST(
   };
 
   try {
-    const googleEventId = await upsertCalendarEvent(
+    const result = await upsertCalendarEvent(
       user.id,
       sync.googleEventId,
       payload
@@ -52,9 +52,9 @@ export async function POST(
       where: {
         userId_activityScheduleId: { userId: user.id, activityScheduleId: id },
       },
-      data: { status: 'SYNCED', googleEventId, lastError: null },
+      data: { status: 'SYNCED', googleEventId: result.googleEventId, lastError: null },
     });
-    return apiSuccess({ ok: true, googleEventId });
+    return apiSuccess({ ok: true, googleEventId: result.googleEventId, skipped: result.skipped });
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     await prisma.userActivitySync.update({
